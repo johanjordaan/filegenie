@@ -16,7 +16,7 @@ var hashFile = (fileName) => {
 		})
 
 		stream.on('end', () => {
-			resolve(null, hash.digest('hex'))
+			resolve(hash.digest('hex'))
 		})
 	});
 }
@@ -27,23 +27,25 @@ var walk = function(dir, f) {
 	// http://stackoverflow.com/questions/5827612/node-js-fs-readdir-recursive-directory-search
 	return new Promise((resolve,reject) => {
 		fs.readdir(dir, (err, list) => {
-			if (err) return reject(err);
+			if (err) reject(err);
 			var pending = list.length;
-			if (!pending) return resolve(null, results);
+			if (!pending) resolve(results);
 			_.each(list,(file) => {
 				file = path.resolve(dir, file);
 				fs.stat(file, (err, stat) => {
 					if (stat && stat.isDirectory()) {
-						walk(file, (err, res) => {
+						walk(file).then((res)=>{
 							results = results.concat(res);
-							if (!--pending) resolve(null, results);
-						});
+							if (!--pending) resolve(results);
+						}).catch((err)=>{
+							reject(err);
+						})
 					} else {
 						if(f !== undefined)
 							results.push(f(file));
 						else
 							results.push(file);
-						if (!--pending) resolve(null, results);
+						if (!--pending) resolve(results);
 					}
 				});
 			})
