@@ -1,6 +1,5 @@
 var _ = require('lodash');
 var crypto = require('crypto');
-var hash = crypto.createHash('md5');
 var fs = require('fs');
 var path = require('path');
 
@@ -9,8 +8,9 @@ var path = require('path');
 var hashFile = (fileName) => {
 	// TODO :  Handle errors
 	return new Promise((resolve, reject) => {
-		stream = fs.createReadStream(fileName);
+		var stream = fs.createReadStream(fileName);
 
+		var hash = crypto.createHash('md5');
 		stream.on('data', (data) => {
 			hash.update(data, 'utf8')
 		})
@@ -18,6 +18,7 @@ var hashFile = (fileName) => {
 		stream.on('end', () => {
 			resolve(hash.digest('hex'))
 		})
+
 	});
 }
 

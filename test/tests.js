@@ -14,6 +14,15 @@ describe("filegenie", (done) => {
 		})
 	});
 
-
+	describe("hashFile", (done) => {
+		it("should hash the file and return the hash in hex",(done) => {
+			fg.hashFile('./test/fixtures/file_1.txt').then((hash) => {
+				hash.should.equal('cb7d53b25a9f40056bfe25a198fe8755');
+				done();
+			}).catch((err)=>{
+				done(err);
+			})
+		});
+	});
 
 })
