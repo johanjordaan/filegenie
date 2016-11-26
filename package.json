@@ -1,0 +1,18 @@
+{
+  "name": "filegenie",
+  "version": "1.0.0",
+  "description": "",
+  "main": "fg.js",
+  "dependencies": {
+    "lodash": "~4.17.2"
+  },
+  "devDependencies": {
+    "chai": "^3.5.0",
+    "mocha": "^3.2.0"
+  },
+  "scripts": {
+    "test": "mocha"
+  },
+  "author": "",
+  "license": "ISC"
+}
