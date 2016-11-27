@@ -30,32 +30,21 @@ var exists = (path) => {
 	})
 }
 
-var processDirectory = (target) => {
-	var _processor = (file) => {
-		return hashFile(file).then((hash)=>{
-			return {
-				file: file,
-				hash: hash,
-			}
-		})
-	}
-
+var processDirectory = (target,progress) => {
 	return new Promise((resolve, reject) => {
 		var walker  = walk.walk(target, { followLinks: false })
 		var results = [];
 
 		walker.on("file", (root, fileStat, next) => {
-			var p = path.join(root,fileStat.name)
-			hashFile(p).then((hash) => {
-				results.push({
-					name: fileStat.name,
-					path: path.join(root,fileStat.name),
-					mtime: fileStat.mtime, //data modified
-					birthtime: fileStat.mtime, //create date
-					hash: hash,
-				});
-				next();
-			})
+			results.push({
+				name: fileStat.name,
+				path: path.join(root,fileStat.name),
+				mtime: fileStat.mtime, //data modified
+				birthtime: fileStat.mtime, //create date
+				hash: '',
+			});
+			if(progress !== undefined) progress("DISCOVERING FILES",fileStat.name);
+			next();
 		});
 
 		walker.on("errors", (root, nodeStatsArray, next) => {
@@ -68,7 +57,20 @@ var processDirectory = (target) => {
 		});
 
 		walker.on("end", () => {
-			resolve(results);
+			var hashPromises = _.map(results,(item) => {
+				return hashFile(item.path).then((hash)=>{
+					if(progress !== undefined) progress("HASHING FILES",item.name);
+					return hash;
+				})
+			})
+			// NOTE : I assume that they resolve in the same order
+			Promise.all(hashPromises).then((values) => {
+				results = _.map(_.zip(results,values),([item,hash]) => {
+					item.hash = hash;
+					return item;
+				});
+				resolve(results);
+			});
 		});
 	})
 }
