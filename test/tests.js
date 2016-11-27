@@ -1,7 +1,15 @@
+var fs = require('fs');
+
 var fg = require('../fg');
 var should = require('chai').should()
 
 describe("filegenie", (done) => {
+	before((done)=>{
+		fs.rmdir('./test/fixtures/.filegenie', (err) => {
+  			if (err) done();
+			else done();
+		});
+	});
 
 	describe("walk", (done) => {
 		it("should read all the files in the current directory",(done) => {
@@ -25,4 +33,32 @@ describe("filegenie", (done) => {
 		});
 	});
 
+
+	describe("init", (done) => {
+		it("should fail if the target directory does not exist",(done) => {
+			fg.init('./aadafffqwewqe/').then((success)=>{
+				done(new Error("This should not be a success"))
+			}).catch((err) => {
+				done();
+			})
+		})
+
+		it("should create the .filegenie directory",(done) => {
+			fg.init('./test/fixtures').then((success)=>{
+				success.should.equal(true);
+				done();
+			}).catch((err) => {
+				done(err);
+			})
+		})
+
+		it("should not fail if the .filegenie directory already exists",(done) => {
+			fg.init('./test/fixtures').then((success)=>{
+				success.should.equal(true);
+				done();
+			}).catch((err) => {
+				done(err);
+			})
+		})
+	})
 })
