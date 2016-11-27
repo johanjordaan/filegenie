@@ -1,7 +1,9 @@
 var fs = require('fs');
 
-var fg = require('../fg');
 var should = require('chai').should()
+var expect = require('chai').expect
+
+var fg = require('../fg');
 
 describe("filegenie", (done) => {
 	before((done)=>{
@@ -9,17 +11,6 @@ describe("filegenie", (done) => {
   			if (err) done();
 			else done();
 		});
-	});
-
-	describe("walk", (done) => {
-		it("should read all the files in the current directory",(done) => {
-			fg.walk('./test/fixtures').then((result)=>{
-				result.length.should.equal(3);
-				done();
-			}).catch((err)=>{
-				done(err);
-			})
-		})
 	});
 
 	describe("hashFile", (done) => {
@@ -32,6 +23,19 @@ describe("filegenie", (done) => {
 			})
 		});
 	});
+
+
+	describe("processDirectory", (done) => {
+		it("should return a list of hashes of the files",(done) => {
+			fg.processDirectory('./test/fixtures').then((results) => {
+				expect(results).to.exist;
+				results.length.should.equal(3);
+				done();
+			}).catch((err) => {
+				done(err);
+			})
+		})
+	})
 
 
 	describe("init", (done) => {

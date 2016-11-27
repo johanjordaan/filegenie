@@ -2,6 +2,7 @@ var _ = require('lodash');
 var crypto = require('crypto');
 var fs = require('fs');
 var path = require('path');
+var walk = require('walk');
 
 var hashFile = (fileName) => {
 	// TODO :  Handle errors
@@ -20,44 +21,55 @@ var hashFile = (fileName) => {
 	});
 }
 
-var walk = function(dir, f) {
-	var results = [];
-	// Base code from:
-	// http://stackoverflow.com/questions/5827612/node-js-fs-readdir-recursive-directory-search
-	return new Promise((resolve,reject) => {
-		fs.readdir(dir, (err, list) => {
-			if (err) reject(err);
-			var pending = list.length;
-			if (!pending) resolve(results);
-			_.each(list,(file) => {
-				file = path.resolve(dir, file);
-				fs.stat(file, (err, stat) => {
-					if (stat && stat.isDirectory()) {
-						walk(file).then((res)=>{
-							results = results.concat(res);
-							if (!--pending) resolve(results);
-						}).catch((err)=>{
-							reject(err);
-						})
-					} else {
-						if(f !== undefined)
-							results.push(f(file));
-						else
-							results.push(file);
-						if (!--pending) resolve(results);
-					}
-				});
-			})
-		});
-	})
-};
-
 var exists = (path) => {
 	return new Promise((resolve, reject) => {
 		fs.access(path,fs.constants.F_OK,(err)=>{
 			if(err === undefined || err === null) resolve(true);
 			else resolve(false);
 		})
+	})
+}
+
+var processDirectory = (target) => {
+	var _processor = (file) => {
+		return hashFile(file).then((hash)=>{
+			return {
+				file: file,
+				hash: hash,
+			}
+		})
+	}
+
+	return new Promise((resolve, reject) => {
+		var walker  = walk.walk(target, { followLinks: false })
+		var results = [];
+
+		walker.on("file", (root, fileStat, next) => {
+			var p = path.join(root,fileStat.name)
+			hashFile(p).then((hash) => {
+				results.push({
+					name: fileStat.name,
+					path: path.join(root,fileStat.name),
+					mtime: fileStat.mtime, //data modified
+					birthtime: fileStat.mtime, //create date
+					hash: hash,
+				});
+				next();
+			})
+		});
+
+		walker.on("errors", (root, nodeStatsArray, next) => {
+			nodeStatsArray.forEach(function (n) {
+				console.error("[ERROR] " + n.name)
+				console.error(n.error.message || (n.error.code + ": " + n.error.path));
+			});
+			reject(new Error("xxxxx"));
+			next();
+		});
+
+		walker.on("end", () => {
+			resolve(results);
+		});
 	})
 }
 
@@ -83,23 +95,9 @@ var init = (target) => {
 	})
 }
 
-var processDirectory = (path) => {
-	// Modes
-	// 1) From -> To
-	// 2) Current
-	// 3) Two way ?
-
-
-	// 1) Look for an existing .filegenie file
-	// 1.1) Read the file csv [filename,filepath,hash,timestamp,filetimestamp]
-	// 2) Read and process the path
-	// 2.1) Create a csv file [filename,filepath,hash,timestamp,filetimestamp]
-	// 3) Compare the previous file
-}
-
 module.exports = {
 	hashFile:hashFile,
-	walk: walk,
 	exists: exists,
+	processDirectory:processDirectory,
 	init: init,
 }
