@@ -1,4 +1,6 @@
+var program = require('commander');
 var fg = require('./fg');
+
 
 var total = 0;
 var count = 0;
@@ -11,8 +13,30 @@ var progress = (state,details) => {
 	}
 }
 
-fg.processDirectory('/Users/johan/Desktop/all_photos',progress).then((results) => {
-	console.log(`Done... [${total}]`);
-}).catch((err) => {
-	console.log(err);
-})
+
+program
+	.version('0.0.1');
+
+program
+	.command('init <dir>')
+	.action(function (dir) {
+		console.log(`init ${dir}`);
+
+		fg.init(dir).then((success)=>{
+			return fg.processDirectory(dir,progress);
+		}).then((results) => {
+			return fg.saveResults(dir,results);
+		}).catch((err) => {
+			done();
+		})
+
+	})
+
+program
+	.command('sync')
+	.action(function () {
+		console.log(`sync`);
+	});
+
+program.parse(process.argv);
+if (!program.args.length) program.help();

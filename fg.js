@@ -97,9 +97,21 @@ var init = (target) => {
 	})
 }
 
+var saveResults = (dir, results) => {
+	new Promise((resolve, reject) => {
+		var location = path.join(dir,".filegenie","current.json");
+		fs.writeFile(location, JSON.stringify(results), "utf-8", (err) => {
+			if(err) reject(err);
+			else resolve(true);
+		})
+	});
+
+}
+
 module.exports = {
-	hashFile:hashFile,
+	hashFile: hashFile,
 	exists: exists,
-	processDirectory:processDirectory,
 	init: init,
+	processDirectory: processDirectory,
+	saveResults: saveResults,
 }
