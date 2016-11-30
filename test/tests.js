@@ -36,9 +36,9 @@ describe("filegenie", (done) => {
 		})
 	})
 
-	describe("init", (done) => {
+	describe("initialise", (done) => {
 		it("should fail if the target directory does not exist",(done) => {
-			fg.init('./aadafffqwewqe/').then((success)=>{
+			fg.initialise('./aadafffqwewqe/').then((success)=>{
 				done(new Error("This should not be a success"))
 			}).catch((err) => {
 				done();
@@ -46,7 +46,7 @@ describe("filegenie", (done) => {
 		})
 
 		it("should create the .filegenie directory",(done) => {
-			fg.init('./test/fixtures').then((success)=>{
+			fg.initialise('./test/fixtures').then((success)=>{
 				success.should.equal(true);
 				done();
 			}).catch((err) => {
@@ -55,7 +55,7 @@ describe("filegenie", (done) => {
 		})
 
 		it("should not fail if the .filegenie directory already exists",(done) => {
-			fg.init('./test/fixtures').then((success)=>{
+			fg.initialise('./test/fixtures').then((success)=>{
 				success.should.equal(true);
 				done();
 			}).catch((err) => {
@@ -90,6 +90,22 @@ describe("filegenie", (done) => {
 				return fg.saveManifest('./test/fixtures/',results);
 			}).then((success) => {
 				success.should.equal(true);
+				done();
+			}).catch((err) => {
+				done(err);
+			})
+		})
+	})
+
+	describe("loadManifest", (done) => {
+		it("should load a manifest of the files in the .filegenie directory",(done) => {
+			fg.processDirectory('./test/fixtures').then((results) => {
+				return fg.saveManifest('./test/fixtures/',results);
+			}).then((success) => {
+				success.should.equal(true);
+				return fg.loadManifest('./test/fixtures/');
+			}).then((loadedResults) => {
+				loadedResults.length.should.equal(3);
 				done();
 			}).catch((err) => {
 				done(err);

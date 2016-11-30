@@ -22,7 +22,7 @@ program
 	.action(function (dir) {
 		console.log(`init ${dir}`);
 
-		fg.init(dir).then((success)=>{
+		fg.initialise(dir).then((success)=>{
 			return fg.processDirectory(dir,progress);
 		}).then((results) => {
 			return fg.saveManifest(dir,results);

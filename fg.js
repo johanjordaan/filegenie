@@ -82,7 +82,7 @@ var wasInitialised = (dir) => {
 	return exists(path.join(dir,".filegenie"));
 }
 
-var init = (target) => {
+var initialise = (target) => {
 	var target_filegenie = path.join(target,".filegenie");
 	return exists(target).then((doesExist)=>{
 		if(!doesExist) {
@@ -128,7 +128,7 @@ module.exports = {
 	hashFile: hashFile,
 	exists: exists,
 	wasInitialised: wasInitialised,
-	init: init,
+	initialise: initialise,
 	processDirectory: processDirectory,
 	saveManifest: saveManifest,
 	loadManifest: loadManifest,
