@@ -36,15 +36,18 @@ var processDirectory = (target,progress) => {
 		var results = [];
 
 		walker.on("file", (root, fileStat, next) => {
-			results.push({
-				name: fileStat.name,
-				path: path.join(root,fileStat.name),
-				mtime: fileStat.mtime, //data modified
-				birthtime: fileStat.mtime, //create date
-				hash: '',
-			});
-			if(progress !== undefined) progress("DISCOVERING FILES",fileStat.name);
-			next();
+			if(root.match(/\.filegenie/) !== null) next();
+			else {
+				results.push({
+					name: fileStat.name,
+					path: path.join(root,fileStat.name),
+					mtime: fileStat.mtime, //data modified
+					birthtime: fileStat.mtime, //create date
+					hash: '',
+				});
+				if(progress !== undefined) progress("DISCOVERING FILES",fileStat.name);
+				next();
+			}
 		});
 
 		walker.on("errors", (root, nodeStatsArray, next) => {
@@ -75,6 +78,10 @@ var processDirectory = (target,progress) => {
 	})
 }
 
+var wasInitialised = (dir) => {
+	return exists(path.join(dir,".filegenie"));
+}
+
 var init = (target) => {
 	var target_filegenie = path.join(target,".filegenie");
 	return exists(target).then((doesExist)=>{
@@ -97,21 +104,32 @@ var init = (target) => {
 	})
 }
 
-var saveResults = (dir, results) => {
-	new Promise((resolve, reject) => {
-		var location = path.join(dir,".filegenie","current.json");
+var saveManifest = (dir, results) => {
+	return new Promise((resolve, reject) => {
+		var location = path.join(dir,".filegenie","manifest.json");
 		fs.writeFile(location, JSON.stringify(results), "utf-8", (err) => {
 			if(err) reject(err);
 			else resolve(true);
 		})
 	});
+}
 
+var loadManifest = (dir) => {
+	return new Promise((resolve, reject) => {
+		var location = path.join(dir,".filegenie","manifest.json");
+		fs.readFile(location, "utf-8", (err, data) => {
+			if(err) reject(err);
+			else resolve(JSON.parse(data));
+		})
+	});
 }
 
 module.exports = {
 	hashFile: hashFile,
 	exists: exists,
+	wasInitialised: wasInitialised,
 	init: init,
 	processDirectory: processDirectory,
-	saveResults: saveResults,
+	saveManifest: saveManifest,
+	loadManifest: loadManifest,
 }

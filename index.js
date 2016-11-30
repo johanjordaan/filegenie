@@ -25,7 +25,7 @@ program
 		fg.init(dir).then((success)=>{
 			return fg.processDirectory(dir,progress);
 		}).then((results) => {
-			return fg.saveResults(dir,results);
+			return fg.saveManifest(dir,results);
 		}).catch((err) => {
 			done();
 		})
@@ -33,9 +33,11 @@ program
 	})
 
 program
-	.command('sync')
+	.command('update <dir>')
 	.action(function () {
-		console.log(`sync`);
+		console.log(`update ${dir}`);
+
+
 	});
 
 program.parse(process.argv);

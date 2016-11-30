@@ -24,7 +24,6 @@ describe("filegenie", (done) => {
 		});
 	});
 
-
 	describe("processDirectory", (done) => {
 		it("should return a list of hashes of the files",(done) => {
 			fg.processDirectory('./test/fixtures').then((results) => {
@@ -36,7 +35,6 @@ describe("filegenie", (done) => {
 			})
 		})
 	})
-
 
 	describe("init", (done) => {
 		it("should fail if the target directory does not exist",(done) => {
@@ -65,4 +63,39 @@ describe("filegenie", (done) => {
 			})
 		})
 	})
+
+	describe("wasInitialised", (done) => {
+		it("should return true for a previously initialised directory",(done) => {
+			fg.wasInitialised('./test/fixtures').then((success)=>{
+				success.should.equal(true);
+				done();
+			}).catch((err) => {
+				done(err);
+			})
+		})
+
+		it("should return false for a directory that has not been initialised",(done) => {
+			fg.wasInitialised('./test/').then((success)=>{
+				success.should.equal(false);
+				done();
+			}).catch((err) => {
+				done(err);
+			})
+		})
+	})
+
+	describe("saveManifest", (done) => {
+		it("should save a manifest of the files in the .filegenie directory",(done) => {
+			fg.processDirectory('./test/fixtures').then((results) => {
+				return fg.saveManifest('./test/fixtures/',results);
+			}).then((success) => {
+				success.should.equal(true);
+				done();
+			}).catch((err) => {
+				done(err);
+			})
+		})
+	})
+
+
 })
