@@ -1,3 +1,4 @@
+var _ = require("lodash");
 var fs = require('fs');
 
 var should = require('chai').should()
@@ -26,9 +27,25 @@ describe("filegenie", (done) => {
 
 	describe("processDirectory", (done) => {
 		it("should return a list of hashes of the files",(done) => {
-			fg.processDirectory('./test/fixtures').then((results) => {
-				expect(results).to.exist;
-				results.length.should.equal(3);
+			fg.processDirectory('./test/fixtures').then((manifest) => {
+				expect(manifest).to.exist;
+				_.keys(manifest).length.should.equal(3);
+				done();
+			}).catch((err) => {
+				done(err);
+			})
+		})
+
+		it("should return a list of hashes of the files",(done) => {
+			var progress = (state,name) => {
+				console.log(state,name);
+			}
+
+			fg.processDirectory('./test/fixtures').then((manifest) => {
+				return fg.processDirectory('./test/fixtures',manifest,progress)
+			}).then((manifest) => {
+				expect(manifest).to.exist;
+				_.keys(manifest).length.should.equal(3);
 				done();
 			}).catch((err) => {
 				done(err);
@@ -105,7 +122,7 @@ describe("filegenie", (done) => {
 				success.should.equal(true);
 				return fg.loadManifest('./test/fixtures/');
 			}).then((loadedResults) => {
-				loadedResults.length.should.equal(3);
+				_.keys(loadedResults).length.should.equal(3);
 				done();
 			}).catch((err) => {
 				done(err);

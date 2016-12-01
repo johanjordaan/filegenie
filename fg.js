@@ -30,21 +30,21 @@ var exists = (path) => {
 	})
 }
 
-var processDirectory = (target,progress) => {
+var processDirectory = (dir, manifest, progress) => {
 	return new Promise((resolve, reject) => {
-		var walker  = walk.walk(target, { followLinks: false })
-		var results = [];
+		var walker  = walk.walk(dir, { followLinks: false })
+		var results = {};
 
 		walker.on("file", (root, fileStat, next) => {
 			if(root.match(/\.filegenie/) !== null) next();
 			else {
-				results.push({
+				results[`${fileStat.name}_${fileStat.mtime}`] = {
 					name: fileStat.name,
 					path: path.join(root,fileStat.name),
 					mtime: fileStat.mtime, //data modified
 					birthtime: fileStat.mtime, //create date
 					hash: '',
-				});
+				};
 				if(progress !== undefined) progress("DISCOVERING FILES",fileStat.name);
 				next();
 			}
@@ -60,18 +60,14 @@ var processDirectory = (target,progress) => {
 		});
 
 		walker.on("end", () => {
-			var hashPromises = _.map(results,(item) => {
+			var hashPromises = _.map(_.values(results),(item) => {
 				return hashFile(item.path).then((hash)=>{
 					if(progress !== undefined) progress("HASHING FILES",item.name);
-					return hash;
+					item.hash =  hash;
 				})
 			})
 			// NOTE : I assume that they resolve in the same order
-			Promise.all(hashPromises).then((values) => {
-				results = _.map(_.zip(results,values),([item,hash]) => {
-					item.hash = hash;
-					return item;
-				});
+			Promise.all(hashPromises).then(() => {
 				resolve(results);
 			});
 		});
