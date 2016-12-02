@@ -1,6 +1,8 @@
 var _ = require('lodash');
 var crypto = require('crypto');
 var fs = require('fs');
+var moment = require('moment');
+
 var path = require('path');
 var walk = require('walk');
 
@@ -21,6 +23,15 @@ var hashFile = (fileName) => {
 	});
 }
 
+var getFileId = (name, size, creationDate, modificationDate) => {
+	var hash = crypto.createHash('md5');
+	hash.update(name, 'utf8');
+	hash.update(size, 'utf8');
+	hash.update(creationDate, 'utf8');
+	hash.update(modificationDate, 'utf8');
+	return hash.digest('hex');
+}
+
 var exists = (path) => {
 	return new Promise((resolve, reject) => {
 		fs.access(path,fs.constants.F_OK,(err)=>{
@@ -31,6 +42,8 @@ var exists = (path) => {
 }
 
 var processDirectory = (dir, manifest, progress) => {
+	if(manifest === undefined) manifest = {};
+
 	return new Promise((resolve, reject) => {
 		var walker  = walk.walk(dir, { followLinks: false })
 		var results = {};
@@ -38,11 +51,18 @@ var processDirectory = (dir, manifest, progress) => {
 		walker.on("file", (root, fileStat, next) => {
 			if(root.match(/\.filegenie/) !== null) next();
 			else {
-				results[`${fileStat.name}_${fileStat.mtime}`] = {
+				creationDate = moment(fileStat.birthtime).format("YYYYMMDD hhmmss");
+				modificationDate = moment(fileStat.mtime).format("YYYYMMDD hhmmss");
+				id = getFileId(fileStat.name,`${fileStat.size}`,creationDate,modificationDate)
+
+
+				results[id] = {
+					id: id,
 					name: fileStat.name,
 					path: path.join(root,fileStat.name),
-					mtime: fileStat.mtime, //data modified
-					birthtime: fileStat.mtime, //create date
+					modificationDate: modificationDate,
+					creationDate: creationDate,
+					size: fileStat.size,
 					hash: '',
 				};
 				if(progress !== undefined) progress("DISCOVERING FILES",fileStat.name);
@@ -61,10 +81,17 @@ var processDirectory = (dir, manifest, progress) => {
 
 		walker.on("end", () => {
 			var hashPromises = _.map(_.values(results),(item) => {
-				return hashFile(item.path).then((hash)=>{
-					if(progress !== undefined) progress("HASHING FILES",item.name);
-					item.hash =  hash;
-				})
+				previousItem = manifest[item.id];
+
+				if(previousItem !== undefined) {
+					item.hash = previousItem.hash;
+					if(progress !== undefined) progress("SKIPPING FILES",item.name);
+				} else {
+					return hashFile(item.path).then((hash)=>{
+						if(progress !== undefined) progress("HASHING FILES",item.name);
+						item.hash =  hash;
+					})
+				}
 			})
 			// NOTE : I assume that they resolve in the same order
 			Promise.all(hashPromises).then(() => {
