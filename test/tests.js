@@ -8,7 +8,7 @@ var fg = require('../fg');
 
 describe("filegenie", (done) => {
 	before((done)=>{
-		fs.rmdir('./test/fixtures/.filegenie', (err) => {
+		fs.rmdir('./test/fixtures/source/.filegenie', (err) => {
   			if (err) done();
 			else done();
 		});
@@ -16,7 +16,7 @@ describe("filegenie", (done) => {
 
 	describe("hashFile", (done) => {
 		it("should hash the file and return the hash in hex",(done) => {
-			fg.hashFile('./test/fixtures/file_1.txt').then((hash) => {
+			fg.hashFile('./test/fixtures/source/file_1.txt').then((hash) => {
 				hash.should.equal('cb7d53b25a9f40056bfe25a198fe8755');
 				done();
 			}).catch((err)=>{
@@ -31,7 +31,7 @@ describe("filegenie", (done) => {
 				console.log(state,name);
 			}
 
-			fg.processDirectory('./test/fixtures',undefined,progress).then((manifest) => {
+			fg.processDirectory('./test/fixtures/source',undefined,progress).then((manifest) => {
 				expect(manifest).to.exist;
 				_.keys(manifest).length.should.equal(3);
 				done();
@@ -45,8 +45,8 @@ describe("filegenie", (done) => {
 				console.log(state,name);
 			}
 
-			fg.processDirectory('./test/fixtures').then((manifest) => {
-				return fg.processDirectory('./test/fixtures',manifest,progress)
+			fg.processDirectory('./test/fixtures/source').then((manifest) => {
+				return fg.processDirectory('./test/fixtures/source',manifest,progress)
 			}).then((manifest) => {
 				expect(manifest).to.exist;
 				_.keys(manifest).length.should.equal(3);
@@ -67,7 +67,7 @@ describe("filegenie", (done) => {
 		})
 
 		it("should create the .filegenie directory",(done) => {
-			fg.initialise('./test/fixtures').then((success)=>{
+			fg.initialise('./test/fixtures/source').then((success)=>{
 				success.should.equal(true);
 				done();
 			}).catch((err) => {
@@ -76,7 +76,7 @@ describe("filegenie", (done) => {
 		})
 
 		it("should not fail if the .filegenie directory already exists",(done) => {
-			fg.initialise('./test/fixtures').then((success)=>{
+			fg.initialise('./test/fixtures/source').then((success)=>{
 				success.should.equal(true);
 				done();
 			}).catch((err) => {
@@ -87,7 +87,7 @@ describe("filegenie", (done) => {
 
 	describe("wasInitialised", (done) => {
 		it("should return true for a previously initialised directory",(done) => {
-			fg.wasInitialised('./test/fixtures').then((success)=>{
+			fg.wasInitialised('./test/fixtures/source').then((success)=>{
 				success.should.equal(true);
 				done();
 			}).catch((err) => {
@@ -107,8 +107,8 @@ describe("filegenie", (done) => {
 
 	describe("saveManifest", (done) => {
 		it("should save a manifest of the files in the .filegenie directory",(done) => {
-			fg.processDirectory('./test/fixtures').then((results) => {
-				return fg.saveManifest('./test/fixtures/',results);
+			fg.processDirectory('./test/fixtures/source').then((results) => {
+				return fg.saveManifest('./test/fixtures/source',results);
 			}).then((success) => {
 				success.should.equal(true);
 				done();
@@ -120,11 +120,11 @@ describe("filegenie", (done) => {
 
 	describe("loadManifest", (done) => {
 		it("should load a manifest of the files in the .filegenie directory",(done) => {
-			fg.processDirectory('./test/fixtures').then((results) => {
-				return fg.saveManifest('./test/fixtures/',results);
+			fg.processDirectory('./test/fixtures/source').then((results) => {
+				return fg.saveManifest('./test/fixtures/source',results);
 			}).then((success) => {
 				success.should.equal(true);
-				return fg.loadManifest('./test/fixtures/');
+				return fg.loadManifest('./test/fixtures/source');
 			}).then((loadedResults) => {
 				_.keys(loadedResults).length.should.equal(3);
 				done();
@@ -134,5 +134,26 @@ describe("filegenie", (done) => {
 		})
 	})
 
+	describe("diff", (done) => {
+		it("should generate a diff between the source and destination",(done) => {
+			fg.initialise('./test/fixtures/source').then((success)=>{
+				return fg.initialise('./test/fixtures/target');
+			}).then((success)=>{
+				return fg.processDirectory('./test/fixtures/source');
+			}).then((results) => {
+				return fg.saveManifest('./test/fixtures/source',results);
+			}).then((success) => {
+				return fg.processDirectory('./test/fixtures/target');
+			}).then((results) => {
+				return fg.saveManifest('./test/fixtures/target',results);
+			}).then((success) => {
+				return fg.diff('./test/fixtures/source','./test/fixtures/target');
+			}).then((diffResults) => {
+				done();
+			}).catch((err) => {
+				done(err);
+			})
+		})
+	})
 
 })
