@@ -28,7 +28,7 @@ describe("filegenie", (done) => {
 	describe("processDirectory", (done) => {
 		it("should return a list of hashes of the files",(done) => {
 			var progress = (state,name) => {
-				console.log(state,name);
+				//console.log(state,name);
 			}
 
 			fg.processDirectory('./test/fixtures/source',undefined,progress).then((manifest) => {
@@ -42,7 +42,7 @@ describe("filegenie", (done) => {
 
 		it("should return a list of hashes of the files",(done) => {
 			var progress = (state,name) => {
-				console.log(state,name);
+				//console.log(state,name);
 			}
 
 			fg.processDirectory('./test/fixtures/source').then((manifest) => {

@@ -147,6 +147,29 @@ var loadManifest = (dir) => {
 	});
 }
 
+var diff = (source, target) => {
+	var sourceManifest = {};
+	loadManifest(source).then((results)=>{
+		sourceManifest = results;
+		console.log("...2",target,sourceManifest);
+		return(loadManifest(target));
+	}).then((targetManifest) => {
+
+		console.log("...");
+		// Check all items in source: Same, Deleted, Changed, Renamed
+		var d = _.map(sourceManifest,(item)=>{
+			return(id);
+		})
+		console.log(d);
+
+		// Check all items in target: New
+
+
+	}).catch((err)=>{
+		console.log(err);
+	})
+}
+
 module.exports = {
 	hashFile: hashFile,
 	exists: exists,
@@ -155,4 +178,5 @@ module.exports = {
 	processDirectory: processDirectory,
 	saveManifest: saveManifest,
 	loadManifest: loadManifest,
+	diff: diff,
 }
