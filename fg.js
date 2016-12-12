@@ -141,6 +141,7 @@ var loadManifest = (dir) => {
 	return new Promise((resolve, reject) => {
 		var location = path.join(dir,".filegenie","manifest.json");
 		fs.readFile(location, "utf-8", (err, data) => {
+			console.log(err,data)
 			if(err) reject(err);
 			else resolve(JSON.parse(data));
 		})
@@ -148,11 +149,12 @@ var loadManifest = (dir) => {
 }
 
 var diff = (source, target) => {
+	console.log(source,target);
 	var sourceManifest = {};
-	loadManifest(source).then((results)=>{
-		sourceManifest = results;
-		console.log("...2",target,sourceManifest);
-		return(loadManifest(target));
+	loadManifest(target).then((results)=>{
+//		sourceManifest = results;
+		console.log("...2",target,source);
+		return loadManifest(target);
 	}).then((targetManifest) => {
 
 		console.log("...");

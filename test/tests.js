@@ -135,7 +135,7 @@ describe("filegenie", (done) => {
 	})
 
 	describe("diff", (done) => {
-		it("should generate a diff between the source and destination",(done) => {
+		it.only("should generate a diff between the source and destination",(done) => {
 			fg.initialise('./test/fixtures/source').then((success)=>{
 				return fg.initialise('./test/fixtures/target');
 			}).then((success)=>{
